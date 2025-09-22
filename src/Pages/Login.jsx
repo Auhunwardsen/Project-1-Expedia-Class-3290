@@ -2,13 +2,20 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "./login.css";
 import firebase_app from "../01_firebase/config_firebase";
-import {
-  getAuth,
-  RecaptchaVerifier,
-  signInWithPhoneNumber,
-} from "firebase/auth";
+import { getAuth, RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 import { useDispatch, useSelector } from "react-redux";
 import { fetch_users, login_user } from "../Redux/Authantication/auth.action";
+import { parsePhoneNumberFromString } from 'libphonenumber-js';
+
+function parsePhone(input) {
+  const phoneNumber = parsePhoneNumberFromString(input, 'US'); // default region if no +
+  if (!phoneNumber) return null;
+
+  return {
+    countryCode: phoneNumber.countryCallingCode,
+    nationalNumber: phoneNumber.nationalNumber
+  };
+}
 
 const auth = getAuth(firebase_app);
 const state = {
@@ -62,11 +69,12 @@ export const Login = () => {
   function handleVerifyNumber() {
     document.querySelector("#nextText").innerText = "Please wait...";
     onCapture();
-    const phoneNumber = `+91${number}`;
+    const phoneNumber = parsePhone(check.number);
     const appVerifier = window.recaptchaVerifier;
-    if (number.length === 10) {
+    // If number is at least "+12345678910" - 12 character length
+    if (check.number.length >= 12) {
       if (exist) {
-        signInWithPhoneNumber(auth, phoneNumber, appVerifier)
+        signInWithPhoneNumber(auth, `+${phoneNumber.countryCode}${phoneNumber.nationalNumber}`, appVerifier)
           .then((confirmationResult) => {
             // SMS sent. Prompt user to type the code from the message, then sign the
             // user in with confirmationResult.confirm(code).
@@ -74,7 +82,7 @@ export const Login = () => {
             setCheck({ ...check, verify: true });
             document.querySelector(
               "#loginMesageSuccess"
-            ).innerHTML = `Otp Send To ${number} !`;
+            ).innerHTML = `Otp Send To ${check.number} !`;
             document.querySelector("#loginMesageError").innerHTML = "";
             document.querySelector("#nextText").style.display = "none";
             // ...
@@ -124,12 +132,15 @@ export const Login = () => {
       });
   }
 
-  //
   const handleChangeMobile = (e) => {
-    let val = e.target.value;
-    setCheck({ ...check, [e.target.name]: val });
+    const { name, value } = e.target;
+    console.log("Updating:", name, value);
+
+    setCheck((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
-  // console.log(isAuth)
 
   useEffect(() => {
     dispatch(fetch_users);
@@ -153,10 +164,10 @@ export const Login = () => {
             <label htmlFor="">Enter Your Number</label>
             <span>
               <input
-                type="number"
+                type="tel"
                 readOnly={verify}
                 name="number"
-                value={number}
+                value={check.number}
                 onChange={(e) => handleChangeMobile(e)}
                 placeholder="Number"
               />
