@@ -18,6 +18,15 @@ let initialState = {
 export const Admin = () => {
   const [flight, setFlight] = useState(initialState);
   const dispatch = useDispatch();
+
+  // Admin route protection
+  React.useEffect(() => {
+    const activeUser = JSON.parse(localStorage.getItem('activeUser') || '{}');
+    if (!activeUser.isAdmin) {
+      window.location = '/';
+    }
+  }, []);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
 

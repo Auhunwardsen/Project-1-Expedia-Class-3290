@@ -52,7 +52,28 @@ const StayData = () => {
 console.log(data)
   return (
     <div className="stay-data">
-      
+      <div style={{display: 'flex', gap: '1rem', marginBottom: '1rem'}}>
+        <select
+          onChange={e => {
+            const val = e.target.value;
+            let sorted = [...filteredHotel];
+            if (val === "price-asc") {
+              sorted.sort((a, b) => a.price - b.price);
+            } else if (val === "price-desc") {
+              sorted.sort((a, b) => b.price - a.price);
+            } else if (val === "rating-desc") {
+              sorted.sort((a, b) => (b.rating || 1) - (a.rating || 1));
+            }
+            setFilteredHotel(sorted);
+          }}
+          style={{padding: '8px', borderRadius: '4px'}}
+        >
+          <option value="">Sort By</option>
+          <option value="price-asc">Price: Low to High</option>
+          <option value="price-desc">Price: High to Low</option>
+          <option value="rating-desc">Rating: High to Low</option>
+        </select>
+      </div>
       <div className="sidebar-container">
         <Sidebar/>
       </div>
@@ -83,6 +104,20 @@ console.log(data)
                 <p>{hotel.rating ? hotel.rating : 1}</p>
               </div>
             </div>
+            <button
+              style={{marginTop: '10px', background: 'teal', color: 'white', padding: '10px', borderRadius: '5px'}}
+              onClick={() => {
+                fetch('http://localhost:8080/bookings', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(hotel)
+                })
+                  .then(() => alert('Hotel booked! Added to your bookings.'))
+                  .catch(() => alert('Booking failed. Try again.'));
+              }}
+            >
+              Book Now
+            </button>
           </div>
         </div>
       ))}
