@@ -1,73 +1,70 @@
-import axios from "axios";
 import React, { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
-// import { useDispatch } from "react-redux";
 import { Link } from "react-router-dom";
-import { fetchFlightProducts } from "../../Redux/AdminFlights/action";
+import { API_ENDPOINTS } from "../../config/api";
+import { apiService } from "../../services/apiService";
+import { handleApiError } from "../../utils/errorHandler";
 import "./AdminDashboard.Module.css";
 
 
 export const AdminDashboard = () => {
-  const dispatch = useDispatch();
   const [flight, setFlight] = useState(0);
   const [hotel, setHotel] = useState(0);
   const [users, setUsers] = useState(0);
   const [giftCard, setGiftCard] = useState(0);
   const [things, setThings] = useState(0);
- const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const getHotel = () => {
+  const getDashboardData = async () => {
     setLoading(true);
-    axios
-      .get("http://localhost:8080/flight")
-      .then((res) => {
-        setFlight(res.data.length);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-    //
-    axios
-      .get("http://localhost:8080/hotel")
-      .then((res) => {
-        setHotel(res.data.length);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-    //
-    axios
-      .get("http://localhost:8080/users")
-      .then((res) => {
-        setUsers(res.data.length);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+    setError(null);
 
-      axios
-      .get("http://localhost:8080/giftcards")
-      .then((res) => {
-        setGiftCard(res.data.length);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-    
-      axios
-      .get("http://localhost:8080/Things_todo")
-      .then((res) => {
-        setThings(res.data.length);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-    
-    
+    try {
+      // Fetch all dashboard data concurrently
+      const [flightData, hotelData, userData, giftCardData, thingsData] = await Promise.allSettled([
+        apiService.get(API_ENDPOINTS.FLIGHTS),
+        apiService.get(API_ENDPOINTS.HOTELS),
+        apiService.get(API_ENDPOINTS.USERS),
+        apiService.get(API_ENDPOINTS.GIFTCARDS),
+        apiService.get(API_ENDPOINTS.THINGS_TODO),
+      ]);
+
+      // Set the counts for successfully fetched data
+      if (flightData.status === 'fulfilled') {
+        setFlight(flightData.value.length);
+      }
+      if (hotelData.status === 'fulfilled') {
+        setHotel(hotelData.value.length);
+      }
+      if (userData.status === 'fulfilled') {
+        setUsers(userData.value.length);
+      }
+      if (giftCardData.status === 'fulfilled') {
+        setGiftCard(giftCardData.value.length);
+      }
+      if (thingsData.status === 'fulfilled') {
+        setThings(thingsData.value.length);
+      }
+
+      // Check for any failures and log them
+      const failedRequests = [flightData, hotelData, userData, giftCardData, thingsData].filter(
+        result => result.status === 'rejected'
+      );
+      
+      if (failedRequests.length > 0) {
+        console.warn('Some dashboard data failed to load:', failedRequests);
+      }
+
+    } catch (error) {
+      const errorDetails = handleApiError(error, 'Dashboard Data');
+      setError(errorDetails);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
-    getHotel();
+    getDashboardData();
   }, []);
 
   return (
@@ -84,6 +81,12 @@ export const AdminDashboard = () => {
         <div className="mainBox">
           <div className="mainBoxHead">
             <h1>Admin Dashboard</h1>
+            {loading && <p>Loading dashboard data...</p>}
+            {error && (
+              <div style={{ color: 'red', padding: '10px', backgroundColor: '#f8d7da', border: '1px solid #f5c6cb', borderRadius: '4px', margin: '10px 0' }}>
+                Error loading dashboard: {error.message}
+              </div>
+            )}
             <hr />
             <hr />
             <hr />

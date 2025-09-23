@@ -1,28 +1,44 @@
-import axios from 'axios';
 import React from 'react'
 import { useState } from 'react';
 import { useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import DestinationCard from './DestinationCard';
-import Navbar from '../../Components/Navbar';
-import Footer from '../../Components/Footer'
+import { API_ENDPOINTS } from '../../config/api';
+import { apiService } from '../../services/apiService';
+import { handleApiError } from '../../utils/errorHandler';
 
 import {Grid,Box,Center} from '@chakra-ui/react';
 
 
 export const Destination = () => {
-  const [places,setPlaces] = useState([])
-  const [searchParams] = useSearchParams()
+  const [places, setPlaces] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [searchParams] = useSearchParams();
  
-  let place = searchParams.get("place")
+  let place = searchParams.get("place");
   
-  
-  useEffect(()=>{
-    axios.get(`https://happy-sunglasses-eel.cyclic.app/Things_todo?place=${place}`).then((response) => {
-        setPlaces(response.data)
-     console.log(response.data)
-    });
-  },[])
+  useEffect(() => {
+    const fetchDestinations = async () => {
+      if (!place) return;
+      
+      setLoading(true);
+      setError(null);
+      
+      try {
+        const data = await apiService.get(`${API_ENDPOINTS.EXTERNAL_THINGS_TODO}?place=${place}`);
+        setPlaces(data);
+        console.log(data);
+      } catch (error) {
+        const errorDetails = handleApiError(error, 'Fetch Destinations');
+        setError(errorDetails);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDestinations();
+  }, [place]);
  
  
   return (

@@ -1,4 +1,3 @@
-import axios from "axios";
 import {
   SELECTED_DATE_AND_CITY,
   SELECTED_CITY,
@@ -9,6 +8,9 @@ import {
   NEW_GET_HOTELS_SUCCESS,
   DELETE_HOTEL,
 } from "./actionType";
+import { API_ENDPOINTS } from "../../config/api";
+import { apiService } from "../../services/apiService";
+import { handleApiError } from "../../utils/errorHandler";
 
 export const getHotelSuccess = (payload) => {
   return { type: GET_HOTEL_SUCCESS, payload };
@@ -22,8 +24,8 @@ export const hotelRequest = () => {
   return { type: HOTEL_REQUEST };
 };
 
-export const hotelFailure = () => {
-  return { type: HOTEL_FAILURE };
+export const hotelFailure = (error = null) => {
+  return { type: HOTEL_FAILURE, payload: error };
 };
 
 export const fetch_hotel = (payload) => {
@@ -44,32 +46,34 @@ export const selectCity = (selectedCity) => {
   return { type: SELECTED_CITY, payload: { selectedCity } };
 };
 
-export const addHotel = (payload) => (dispatch) => {
+export const addHotel = (payload) => async (dispatch) => {
   dispatch(hotelRequest());
 
-  axios
-    .post("https://happy-sunglasses-eel.cyclic.app/hotel", payload) 
-    .then(() => {
-      dispatch(postHotelSuccess());
-    })
-    .catch((err) => {
-      dispatch(hotelFailure());
-    });
+  try {
+    await apiService.post(API_ENDPOINTS.EXTERNAL_HOTELS, payload);
+    dispatch(postHotelSuccess());
+  } catch (error) {
+    const errorDetails = handleApiError(error, 'Add Hotel (External)');
+    dispatch(hotelFailure(errorDetails));
+    throw errorDetails;
+  }
 };
 
 //https://happy-sunglasses-eel.cyclic.app/hotel?_sort=asc&_order=price&page=1&_limit=20
 export const fetchingHotels = (sort, order, page) => async (dispatch) => {
-  console.log(order, sort,page);
+  console.log(order, sort, page);
   dispatch({ type: HOTEL_REQUEST });
+  
   try {
-    const res = await axios.get(
-      `https://happy-sunglasses-eel.cyclic.app/hotel?_sort=${sort}&_order=${order}&_page=${page}&_limit=20`
+    const data = await apiService.get(
+      `${API_ENDPOINTS.EXTERNAL_HOTELS}?_sort=${sort}&_order=${order}&_page=${page}&_limit=20`
     );
-    console.log(res.data);
-    dispatch({ type: GET_HOTEL_SUCCESS, payload: res.data });
-  } catch (err) {
-    dispatch({ type: HOTEL_FAILURE });
-    console.log(err);
+    console.log(data);
+    dispatch({ type: GET_HOTEL_SUCCESS, payload: data });
+  } catch (error) {
+    const errorDetails = handleApiError(error, 'Fetch Hotels (External)');
+    dispatch({ type: HOTEL_FAILURE, payload: errorDetails });
+    throw errorDetails;
   }
 };
 
@@ -81,19 +85,11 @@ export const fetchingHotels = (sort, order, page) => async (dispatch) => {
 
 export const DeleteHotel = (deleteId) => async (dispatch) => {
   try {
-    const res = await fetch(
-      `https://happy-sunglasses-eel.cyclic.app/hotel/${deleteId}`, 
-      {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    let data = await res.json();
-    console.log(data);
+    await apiService.delete(`${API_ENDPOINTS.EXTERNAL_HOTELS}/${deleteId}`);
     dispatch(handleDeleteHotel(deleteId));
-  } catch (e) {
-    console.log(e);
+  } catch (error) {
+    const errorDetails = handleApiError(error, 'Delete Hotel (External)');
+    dispatch(hotelFailure(errorDetails));
+    throw errorDetails;
   }
 };

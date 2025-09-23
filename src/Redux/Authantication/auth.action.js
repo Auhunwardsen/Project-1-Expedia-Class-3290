@@ -1,4 +1,3 @@
-import axios from "axios";
 import {
   GET_USERS,
   LOGIN_ERROR,
@@ -9,6 +8,9 @@ import {
   REGISTER_REQUEST,
   REGISTER_SUCCESSFUL,
 } from "./auth.actionType";
+import { API_ENDPOINTS } from "../../config/api";
+import { apiService } from "../../services/apiService";
+import { handleApiError } from "../../utils/errorHandler";
 
 export const login_request = () => {
   return { type: LOGIN_REQUEST };
@@ -17,8 +19,8 @@ export const login_request = () => {
 export const login_success = (payload) => {
   return { type: LOGIN_SUCCESSFUL, payload };
 };
-export const login_error = () => {
-  return { type: LOGIN_ERROR };
+export const login_error = (error = null) => {
+  return { type: LOGIN_ERROR, payload: error };
 };
 
 export const register_request = () => {
@@ -28,8 +30,8 @@ export const register_request = () => {
 export const register_success = (payload) => {
   return { type: REGISTER_SUCCESSFUL, payload };
 };
-export const register_error = () => {
-  return { type: REGISTER_ERROR };
+export const register_error = (error = null) => {
+  return { type: REGISTER_ERROR, payload: error };
 };
 
 export const get_users = (payload) => {
@@ -42,29 +44,29 @@ export const handlelogout_user = () => {
 
 export const userRigister = (userData) => async (dispatch) => {
   dispatch(register_request());
-  let res = await axios
-    .post(`http://localhost:8080/users`, userData)
-    .then((res) => {
-      dispatch(register_success(res.data));
-      // console.log(res.data)
-    })
-    .catch((err) => {
-      dispatch(register_error());
-    });
+  
+  try {
+    const data = await apiService.post(API_ENDPOINTS.USERS, userData);
+    dispatch(register_success(data));
+  } catch (error) {
+    const errorDetails = handleApiError(error, 'User Registration');
+    dispatch(register_error(errorDetails));
+    throw errorDetails;
+  }
 };
 
 // get users
-
-export const fetch_users = (dispatch) => {
+export const fetch_users = () => async (dispatch) => {
   dispatch(register_request());
-  axios
-    .get(`http://localhost:8080/users`)
-    .then((res) => {
-      dispatch(get_users(res.data));
-    })
-    .catch((err) => {
-      dispatch(register_error());
-    });
+  
+  try {
+    const data = await apiService.get(API_ENDPOINTS.USERS);
+    dispatch(get_users(data));
+  } catch (error) {
+    const errorDetails = handleApiError(error, 'Fetch Users');
+    dispatch(register_error(errorDetails));
+    throw errorDetails;
+  }
 };
 
 // Logint funcnality

@@ -1,4 +1,3 @@
-import axios from "axios";
 import {
   HOTEL_FAILURE,
   HOTEL_REQUEST,
@@ -7,6 +6,9 @@ import {
   NEW_GET_HOTELS_SUCCESS,
   DELETE_HOTEL,
 } from "./actionType";
+import { API_ENDPOINTS } from "../../config/api";
+import { apiService } from "../../services/apiService";
+import { handleApiError } from "../../utils/errorHandler";
 
 export const getHotelSuccess = (payload) => {
   return { type: GET_HOTEL_SUCCESS, payload };
@@ -20,8 +22,8 @@ export const hotelRequest = () => {
   return { type: HOTEL_REQUEST };
 };
 
-export const hotelFailure = () => {
-  return { type: HOTEL_FAILURE };
+export const hotelFailure = (error = null) => {
+  return { type: HOTEL_FAILURE, payload: error };
 };
 
 export const fetch_hotel = (payload) => {
@@ -35,46 +37,39 @@ export const handleDeleteHotel = (payload) => {
 
 //
 
-export const addHotel = (payload) => (dispatch) => {
+export const addHotel = (payload) => async (dispatch) => {
   dispatch(hotelRequest());
 
-  axios
-    .post("http://localhost:8080/hotel", payload) // https://makemytrip-api-data.onrender.com/hotel
-    .then(() => {
-      dispatch(postHotelSuccess());
-    })
-    .catch((err) => {
-      dispatch(hotelFailure());
-    });
+  try {
+    await apiService.post(API_ENDPOINTS.HOTELS, payload);
+    dispatch(postHotelSuccess());
+  } catch (error) {
+    const errorDetails = handleApiError(error, 'Add Hotel');
+    dispatch(hotelFailure(errorDetails));
+    throw errorDetails;
+  }
 };
 
-export const fetchingHotels = (limit) => (dispatch) => {
-  axios
-    .get(`http://localhost:8080/hotel?_limit=${limit}`) // https://makemytrip-api-data.onrender.com/hotel?_limit=${limit}
-    .then((res) => {
-      //   console.log(res.data);
-      dispatch(fetch_hotel(res.data));
-    })
-    .catch((err) => {
-      console.log(err);
-    });
+export const fetchingHotels = (limit) => async (dispatch) => {
+  dispatch(hotelRequest());
+  
+  try {
+    const data = await apiService.get(`${API_ENDPOINTS.HOTELS}?_limit=${limit}`);
+    dispatch(fetch_hotel(data));
+  } catch (error) {
+    const errorDetails = handleApiError(error, 'Fetch Hotels');
+    dispatch(hotelFailure(errorDetails));
+    throw errorDetails;
+  }
 };
 
 export const DeleteHotel = (deleteId) => async (dispatch) => {
   try {
-    const res = await fetch(
-      `http://localhost:8080/hotel/${deleteId}`, // https://makemytrip-api-data.onrender.com/hotel/${deleteId}
-      {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    let data = await res.json();
-    console.log(data);
+    await apiService.delete(`${API_ENDPOINTS.HOTELS}/${deleteId}`);
     dispatch(handleDeleteHotel(deleteId));
-  } catch (e) {
-    console.log(e);
+  } catch (error) {
+    const errorDetails = handleApiError(error, 'Delete Hotel');
+    dispatch(hotelFailure(errorDetails));
+    throw errorDetails;
   }
 };
