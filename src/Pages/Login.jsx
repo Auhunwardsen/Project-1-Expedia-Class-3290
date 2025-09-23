@@ -26,7 +26,7 @@ const state = {
 
 export const Login = () => {
   const [check, setCheck] = useState(state);
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   const { isAuth, activeUser, user } = useSelector((store) => {
     return {
@@ -109,27 +109,36 @@ export const Login = () => {
   }
 
   //
-  function verifyCode() {
-    window.confirmationResult
-      .confirm(otp)
-      .then((result) => {
-        // User signed in successfully.
-        const user = result.user;
+  async function verifyCode() {
+    try {
+      const result = await window.confirmationResult.confirm(otp);
+      if (result.user) {
+        // Get users from localStorage
+        const users = JSON.parse(localStorage.getItem('users') || '[]');
+        const matchingUser = users.find(u => u.firebaseUID === result.user.uid);
 
-        document.querySelector(
-          "#loginMesageSuccess"
-        ).innerHTML = `Verifyed Successful`;
-        document.querySelector("#loginMesageError").innerHTML = "";
-
-        dispatch(login_user(data));
-        // ...
-      })
-      .catch((error) => {
-        // User couldn't sign in (bad verification code?)
-        document.querySelector("#loginMesageSuccess").innerHTML = ``;
-        document.querySelector("#loginMesageError").innerHTML = "Invalid OTP";
-        // ...
-      });
+        if (matchingUser) {
+          // User found, proceed with login
+          const success = await dispatch(login_user(matchingUser));
+          if (success) {
+            document.querySelector("#loginMesageSuccess").innerHTML = "Login successful!";
+            document.querySelector("#loginMesageError").innerHTML = "";
+            // The useEffect will handle redirect when isAuth changes
+          }
+        } else {
+          // No matching user found - they need to register
+          document.querySelector("#loginMesageError").innerHTML = "User not found. Please register first.";
+          document.querySelector("#loginMesageSuccess").innerHTML = "";
+          setTimeout(() => {
+            navigate('/register');
+          }, 2000);
+        }
+      }
+    } catch (error) {
+      console.error("Verification Error:", error);
+      document.querySelector("#loginMesageSuccess").innerHTML = "";
+      document.querySelector("#loginMesageError").innerHTML = "Invalid OTP";
+    }
   }
 
   const handleChangeMobile = (e) => {
@@ -143,11 +152,25 @@ export const Login = () => {
   };
 
   useEffect(() => {
-    dispatch(fetch_users);
+    // Fetch users when component mounts
+    dispatch(fetch_users());
+  }, []);
+
+  useEffect(() => {
+    // Handle authentication state changes
     if (isAuth) {
       window.location = "/";
     }
   }, [isAuth]);
+
+  // Cleanup effect
+  useEffect(() => {
+    return () => {
+      if (window.recaptchaVerifier) {
+        window.recaptchaVerifier.clear();
+      }
+    };
+  }, []);
 
   return (
     <>

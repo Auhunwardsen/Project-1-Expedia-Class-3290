@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import firebase_app from "../01_firebase/config_firebase";
 import { getAuth, RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 import { useDispatch, useSelector } from "react-redux";
-import { fetch_users, userRigister } from "../Redux/Authantication/auth.action";
+import { fetch_users, userRegister } from "../Redux/Authantication/auth.action";
 import { parsePhoneNumberFromString } from 'libphonenumber-js';
 import "./login.css";
 //import Navbar from "../Components/Navbar";
@@ -53,99 +53,137 @@ export const Register = () => {
   }
 
   //  capture
-  const handleRegisterUser = () => {
-    let newObj = {
-      number,
-      user_name,
-      password,
-      email: "",
-      dob: "",
-      gender: "",
-      marital_status: null,
-    };
-    dispatch(userRigister(newObj));
-    setCheck(state);
-    window.location = "/login";
+  const handleRegisterUser = async () => {
+    try {
+      // Check if phone was verified with Firebase
+      const firebaseUID = localStorage.getItem('lastVerifiedUID');
+      if (!firebaseUID) {
+        document.querySelector("#loginMesageError").innerHTML = "Phone verification required";
+        return;
+      }
+
+      // Validate required fields
+      if (!user_name || !password) {
+        document.querySelector("#loginMesageError").innerHTML = "Please fill in all required fields";
+        return;
+      }
+
+      document.querySelector("#loginMesageError").innerHTML = "";
+      document.querySelector("#loginMesageSuccess").innerHTML = "Processing registration...";
+
+      let newObj = {
+        number,
+        user_name,
+        password,
+        email: "",
+        dob: "",
+        gender: "",
+        marital_status: null,
+        firebaseUID
+      };
+      
+  const success = await dispatch(userRegister(newObj));
+      
+      if (success) {
+        document.querySelector("#loginMesageSuccess").innerHTML = "Registration successful! Redirecting...";
+        localStorage.removeItem('lastVerifiedUID');
+        // Add user to localStorage for login compatibility
+        let users = JSON.parse(localStorage.getItem('users') || '[]');
+        users.push(newObj);
+        localStorage.setItem('users', JSON.stringify(users));
+        // Short delay before redirect to show success message
+        setTimeout(() => {
+          setCheck(state);
+          navigate("/login");
+        }, 1500);
+      } else {
+        document.querySelector("#loginMesageError").innerHTML = "Registration failed. Please try again.";
+        document.querySelector("#loginMesageSuccess").innerHTML = "";
+      }
+    } catch (error) {
+      console.error("Registration error:", error);
+      document.querySelector("#loginMesageError").innerHTML = "An error occurred during registration.";
+      document.querySelector("#loginMesageSuccess").innerHTML = "";
+    }
   };
 
-  // oonCapture
-  function onCapture() {
-    window.recaptchaVerifier = new RecaptchaVerifier(
-      "recaptcha-container",
-      {
-        size: "invisible",
-        callback: (response) => {
-          handleVerifyNumber();
-          // reCAPTCHA solved, allow signInWithPhoneNumber.
-          // ...
+  // Always (re)initialize RecaptchaVerifier after DOM mounts and before phone verification
+  useEffect(() => {
+    if (document.getElementById("recaptcha-container")) {
+      if (window.recaptchaVerifier) {
+        // Reset if already exists
+        window.recaptchaVerifier.clear();
+        window.recaptchaVerifier = null;
+      }
+      window.recaptchaVerifier = new RecaptchaVerifier(
+        "recaptcha-container",
+        {
+          size: "invisible",
+          callback: (response) => {
+            // reCAPTCHA solved, allow signInWithPhoneNumber.
+          },
         },
-      },
-      auth
-    );
-  }
+        auth
+      );
+    }
+  }, [verify]);
 
   //   Verify button
   function handleVerifyNumber() {
     document.querySelector("#nextButton").innerText = "Please wait...";
-    onCapture();
+    document.querySelector("#loginMesageError").innerHTML = "";
+    document.querySelector("#loginMesageSuccess").innerHTML = "";
     const phoneNumber = parsePhone(check.number);
     const appVerifier = window.recaptchaVerifier;
-    // If number is at least "+12345678910" - 12 character length
-    if (check.number.length >= 12) {
-      if (exist) {
-        document.querySelector("#loginMesageError").innerHTML =
-          "User Alredy exist";
-        document.querySelector("#loginMesageSuccess").innerHTML = ``;
-      } else {
-        signInWithPhoneNumber(auth, `+${phoneNumber.countryCode}${phoneNumber.nationalNumber}`, appVerifier)
-          .then((confirmationResult) => {
-            // SMS sent. Prompt user to type the code from the message, then sign the
-            // user in with confirmationResult.confirm(code).
-            window.confirmationResult = confirmationResult;
-            setCheck({ ...check, verify: true });
-            document.querySelector(
-              "#loginMesageSuccess"
-            ).innerHTML = `Otp Send To ${check.number} !`;
-            document.querySelector("#loginMesageError").innerHTML = "";
-            document.querySelector("#nextButton").style.display = "none";
-            // ...
-          })
-          .catch((error) => {
-            // Error; SMS not sent
-            // document.querySelector("#nextButton").innerText = 'Server Error'
-            // ...
-          });
-      }
-      //
-    } else {
-      document.querySelector("#loginMesageSuccess").innerHTML = ``;
-      document.querySelector("#loginMesageError").innerHTML =
-        "Mobile Number is Invalid !";
+    // Validate phone number format (E.164: +12345678901)
+    if (!phoneNumber || !/^\d{10,}$/.test(phoneNumber.nationalNumber)) {
+      document.querySelector("#loginMesageError").innerHTML = "Mobile Number is Invalid! Please use format +12223334444.";
+      document.querySelector("#nextButton").innerText = "Next";
+      return;
     }
+    if (exist) {
+      document.querySelector("#loginMesageError").innerHTML = "User Already exists";
+      document.querySelector("#loginMesageSuccess").innerHTML = "";
+      document.querySelector("#nextButton").innerText = "Next";
+      return;
+    }
+    signInWithPhoneNumber(auth, `+${phoneNumber.countryCode}${phoneNumber.nationalNumber}`, appVerifier)
+      .then((confirmationResult) => {
+        window.confirmationResult = confirmationResult;
+        setCheck({ ...check, verify: true });
+        document.querySelector("#loginMesageSuccess").innerHTML = `Otp Sent To ${check.number}!`;
+        document.querySelector("#loginMesageError").innerHTML = "";
+        document.querySelector("#nextButton").style.display = "none";
+      })
+      .catch((error) => {
+        document.querySelector("#loginMesageError").innerHTML = `Failed to send OTP: ${error.message}`;
+        document.querySelector("#loginMesageSuccess").innerHTML = "";
+        document.querySelector("#nextButton").innerText = "Next";
+      });
   }
 
   // if the code is verifyed
-  function verifyCode() {
-    window.confirmationResult
-      .confirm(otp)
-      .then((result) => {
-        // User signed in successfully.
-        const user = result.user;
+  async function verifyCode() {
+    try {
+      const result = await window.confirmationResult.confirm(otp);
+      if (result.user) {
+        // Firebase auth successful
         setCheck({ ...check, otpVerify: true });
         document.querySelector(
           "#loginMesageSuccess"
-        ).innerHTML = `Verifyed Successful`;
+        ).innerHTML = `Verified Successfully`;
         document.querySelector("#loginMesageError").innerHTML = "";
         document.querySelector("#loginNumber").style.display = "none";
         document.querySelector("#loginOtp").style.display = "none";
-        // ...
-      })
-      .catch((error) => {
-        // User couldn't sign in (bad verification code?)
-        document.querySelector("#loginMesageSuccess").innerHTML = ``;
-        document.querySelector("#loginMesageError").innerHTML = "Invalid OTP";
-        // ...
-      });
+        
+        // Store Firebase UID for later verification
+        localStorage.setItem('lastVerifiedUID', result.user.uid);
+      }
+    } catch (error) {
+      console.error("OTP Verification Error:", error);
+      document.querySelector("#loginMesageSuccess").innerHTML = ``;
+      document.querySelector("#loginMesageError").innerHTML = "Invalid OTP";
+    }
   }
 
   const handleChangeMobile = (e) => {
@@ -159,7 +197,7 @@ export const Register = () => {
   };
 
   useEffect(() => {
-    dispatch(fetch_users);
+    dispatch(fetch_users());
   }, []);
 
   return (
@@ -237,7 +275,12 @@ export const Register = () => {
                 </span>
               </div>
               <div className="loginInputB">
-                <button onClick={handleRegisterUser}>Continue</button>
+                <button 
+                  onClick={handleRegisterUser} 
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Please wait..." : "Continue"}
+                </button>
               </div>
             </>
           ) : (

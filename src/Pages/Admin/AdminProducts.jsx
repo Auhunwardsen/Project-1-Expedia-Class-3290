@@ -20,6 +20,14 @@ export const AdminProducts = () => {
     };
   }, shallowEqual);
 
+  // Admin route protection
+  React.useEffect(() => {
+    const activeUser = JSON.parse(localStorage.getItem('activeUser') || '{}');
+    if (!activeUser.isAdmin) {
+      window.location = '/';
+    }
+  }, []);
+
   const handleDeleteFlights = (deleteId) => {
     dispatch(DeleteFlightProducts(deleteId));
     toast.success("Flight Removed", {

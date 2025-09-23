@@ -8,17 +8,26 @@ export default function FlightCard({ data }) {
   const toast = useToast();
 
   const handleClick = () => {
-    axios.post(`http://localhost:8000/flightcart`, data);
-    //   .then((res) => console.log(res))
-    //   .catch((err) => console.log(err))
-
-    toast({
-      title: "Flight Add to Cart",
-      description: "Please Proceed to Payment",
-      status: "success",
-      duration: 9000,
-      isClosable: true,
-    });
+    // Book flight and add to cart
+    axios.post(`http://localhost:8080/bookings`, data)
+      .then(() => {
+        toast({
+          title: "Flight Booked",
+          description: "Added to your bookings!",
+          status: "success",
+          duration: 9000,
+          isClosable: true,
+        });
+      })
+      .catch(() => {
+        toast({
+          title: "Booking Failed",
+          description: "Could not book flight. Try again.",
+          status: "error",
+          duration: 9000,
+          isClosable: true,
+        });
+      });
   };
 
   

@@ -40,43 +40,59 @@ export const handlelogout_user = () => {
   return { type: LOGOUT_USER };
 };
 
-export const userRigister = (userData) => async (dispatch) => {
+export const userRegister = (userData) => async (dispatch) => {
   dispatch(register_request());
-  let res = await axios
-    .post(`http://localhost:8080/users`, userData)
-    .then((res) => {
-      dispatch(register_success(res.data));
-      // console.log(res.data)
-    })
-    .catch((err) => {
-      dispatch(register_error());
-    });
+  try {
+    const res = await axios.post(`http://localhost:8080/users`, userData);
+    dispatch(register_success(res.data));
+    return true;
+  } catch (err) {
+    dispatch(register_error());
+    return false;
+  }
 };
 
 // get users
 
-export const fetch_users = (dispatch) => {
-  dispatch(register_request());
-  axios
-    .get(`http://localhost:8080/users`)
-    .then((res) => {
-      dispatch(get_users(res.data));
-    })
-    .catch((err) => {
-      dispatch(register_error());
-    });
-};
+export const fetch_users = () => async (dispatch) => {
+   dispatch(register_request());
+  try {
+     const res = await axios.get(`http://localhost:8080/users`);
+     dispatch(get_users(res.data));
+   } catch (err) {
+    dispatch(register_error());
+   }
+ };
 
 // Logint funcnality
 
-export const login_user = (loginData) => (dispatch) => {
-  dispatch(login_success(loginData));
-  // localStorage.setItem("MkuserData", JSON.stringify(loginData));
-  // localStorage.setItem("MkisAuth", JSON.stringify(true));
+export const login_user = (userData) => (dispatch) => {
+  dispatch(login_request());
+  try {
+    const users = JSON.parse(localStorage.getItem('users') || '[]');
+    const user = users.find(u => 
+      u.number === userData.number || 
+      u.firebaseUID === userData.firebaseUID
+    );
+    
+    if (user) {
+      dispatch(login_success(user));
+      localStorage.setItem('activeUser', JSON.stringify(user));
+      return true;
+    } else {
+      dispatch(login_error());
+      return false;
+    }
+  } catch (error) {
+    console.error('Login error:', error);
+    dispatch(login_error());
+    return false;
+  }
 };
 
 export const logout_user = (dispatch) => {
-  dispatch(handlelogout_user());
   localStorage.setItem("MkuserData", JSON.stringify({}));
   localStorage.setItem("MkisAuth", JSON.stringify(false));
+
+  dispatch(handlelogout_user())
 };

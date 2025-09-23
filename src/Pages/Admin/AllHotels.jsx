@@ -17,6 +17,14 @@ export const AllHotels = () => {
       data: store.HotelReducer.data,
     };
   }, shallowEqual);
+
+  // Admin route protection
+  React.useEffect(() => {
+    const activeUser = JSON.parse(localStorage.getItem('activeUser') || '{}');
+    if (!activeUser.isAdmin) {
+      window.location = '/';
+    }
+  }, []);
   // console.log(data);
 
   const handleDeleteHotel = (deleteId) => {

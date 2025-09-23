@@ -14,7 +14,15 @@ export const AdminDashboard = () => {
   const [users, setUsers] = useState(0);
   const [giftCard, setGiftCard] = useState(0);
   const [things, setThings] = useState(0);
- const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  // Admin route protection
+  React.useEffect(() => {
+    const activeUser = JSON.parse(localStorage.getItem('activeUser') || '{}');
+    if (!activeUser.isAdmin) {
+      window.location = '/';
+    }
+  }, []);
 
   const getHotel = () => {
     setLoading(true);
