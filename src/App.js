@@ -1,21 +1,25 @@
 import "./App.css";
 import Navbar from "./Components/Navbar";
 import Footer from "./Components/Footer";
+import ErrorBoundary from "./Components/ErrorBoundary";
 import { AllRoutes } from "./Pages/AllRoutes";
-import { useState } from "react";
 
 
 function App() {
   
   return (
     <div className="App">
-      <Navbar />
+      <ErrorBoundary message="Navigation component failed to load">
+        <Navbar />
+      </ErrorBoundary>
     
-      <AllRoutes />
+      <ErrorBoundary message="Main content failed to load" showDetails={true}>
+        <AllRoutes />
+      </ErrorBoundary>
      
-      <Footer />
-
-    
+      <ErrorBoundary message="Footer component failed to load">
+        <Footer />
+      </ErrorBoundary>
     </div>
   );
 }
