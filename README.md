@@ -1,89 +1,96 @@
-<h1>Chalo Ghume</h1>
+# Expedia Clone
 
-<p>This project is a clone of the Expedia website, created by Team of 5 starting with Kumkum (Team Lead), Ashish, Amit, Sagar Balsaraf, and Sarim . The purpose of this project is to showcase our skills and knowledge in HTML, CSS, JavaScript, React, Redux, and Json-Server.<p>
+A full-stack travel booking application inspired by Expedia that allows users to search, compare, and book flights and hotels.
 
+![Expedia Clone Screenshot](https://i.postimg.cc/QxksRNkQ/expedio-Logo.jpg)
 
-<h2>Tech Stack</h2>
+## Features
 
-- HTML
-- CSS
-- JavaScript
-- React
-- Redux
-- Json-Server
-- firebase
+- **User Authentication**: Register and login system with secure credential storage
+- **Flight Search & Booking**: Search available flights with filtering options by price, airline, and duration
+- **Hotel Search & Booking**: Browse hotels with filters for price, location, and amenities
+- **Booking Management**: View and cancel bookings through user dashboard
+- **Admin Panel**: Secure administrative interface to manage flights and hotels
+- **Responsive Design**: Optimized for both desktop and mobile devices
 
+## Tech Stack
 
-<h2>Dependency</h2>
+- **Frontend**: React, Chakra UI
+- **State Management**: Redux
+- **Backend**: JSON Server (mock)
+- **Authentication**: Firebase Authentication
+- **Styling**: CSS, Chakra UI components
 
-- axios
-- redux
-- react-redux
-- redux thunk
-- chakraUI
-- firebase
-- font-awesome
-- json-server
-- react-router-dom
-- better-react-carousel
+## Prerequisites
 
-<h2>Features</h2>
+- Node.js (v14.0 or higher)
+- npm (v6.0 or higher)
 
-- Landing Page
-- Login and signup via firebase (OTP).
-- View details of flights, hotels.
-- Search for flights, hotels, and holiday packages
-- Sorting & Filtering and Seraching
-- Book flights, hotels.
-- Cart Section
-- Admin Panel
+## Installation
 
-<h2>Installation</h2>
+1. **Clone the repository**
 
-To run this project locally, follow the steps below:
+```bash
+git clone https://github.com/Auhunwardsen/Project-1-Expedia-Class-3290.git
+cd Project-1-Expedia-Class-3290
+```
 
-. Clone the repository by running the following command:
-git clone https://github.com/kumkumdutta/interesting-stretch-8935.git
+2. **Install dependencies**
 
-. Navigate to the project directory:
-cd hesitant-river-6235
-
-. Install the dependencies:
+```bash
 npm install
+```
 
-. Start the server:
+3. **Set up the JSON Server**
+
+```bash
+# Install JSON Server globally
+npm install -g json-server
+
+# Run JSON Server (in a separate terminal)
+json-server --watch db.json --port 8080
+```
+
+4. **Start the development server**
+
+```bash
 npm start
+```
 
-. Start JSON- Server:
-npm run server
+5. **Access the application**
 
-. Open the website in your browser:
-http://localhost:3000/
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
+## Contributing Guidelines
 
-<h2>Deployment</h2>
+We welcome contributions to improve this project! Please follow these steps:
 
-This project has been deployed using Vercel at the following URL:
+1. **Fork the repository** and create a new branch from `main`
+2. **Make your changes**, ensuring code quality and consistency
+3. **Test thoroughly** to ensure no functionality is broken
+4. **Submit a pull request** with a clear description of your changes
 
-https://interesting-stretch-8935-liart.vercel.app/
+### Code Style Guidelines
 
+- Follow existing code formatting and naming conventions
+- Comment complex code sections
+- Write meaningful commit messages
+- Update documentation for significant changes
 
-This is Login and Signup pages:-
-![login](https://user-images.githubusercontent.com/112754519/231046318-135d34cb-0ae7-46c3-851c-6889441c62de.PNG)
+### Issues & Feature Requests
 
+Feel free to open issues for bugs or feature requests. Please include:
 
+- Clear description of the bug or feature
+- Steps to reproduce (for bugs)
+- Any relevant screenshots or error messages
 
-This is the Stays Page:-
-![stays](https://user-images.githubusercontent.com/112754519/231046349-d9885d9f-b42d-4d9f-bfc2-0cac0f9a10df.PNG)
+## License
 
+This project is licensed under the MIT License - see the LICENSE file for details.
 
+## Acknowledgments
 
-This is the Flight Page:-
-![Flight](https://user-images.githubusercontent.com/112754519/231046392-fea5d486-9b26-462c-af9a-5727853e6669.PNG)
-
-
-
-This is the Admin Page:-
-![Admin](https://user-images.githubusercontent.com/112754519/231046415-c8c2f14c-f586-4da0-884a-992bc18b0e12.PNG)
-
-
+- Design inspiration from Expedia
+- Icons provided by Chakra UI and React Icons
+- All team members who contributed to the development
