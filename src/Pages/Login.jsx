@@ -224,7 +224,7 @@ export const Login = () => {
             {/* <h2>Or USE ARE BUSSINESS ACCOUNT WITH</h2>
                     <p>By proceeding, you agree to MakeMyTrip'sT&Csand Privacy</p> */}
             <Link to="/register">Don't have an Account</Link>
-            <Link to="/admin">Admin Login</Link>
+            <Link to="/admin-login">Admin Login</Link>
             <div className="inpChecbx"><input className="inp" type="checkbox" /> <h2>Keep me signed in</h2></div>
             <p>Selecting this checkbox will keep you signed into your account on this device until you sign out. Do not select this on shared devices.</p>
             <h6>By signing in, I agree to the Expedia <span> Terms and Conditions</span>, <span>Privacy Statement</span> and <span>Expedia Rewards Terms and Conditions</span>.</h6>

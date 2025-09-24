@@ -107,10 +107,26 @@ console.log(data)
             <button
               style={{marginTop: '10px', background: 'teal', color: 'white', padding: '10px', borderRadius: '5px'}}
               onClick={() => {
+                // Check if user is logged in
+                const activeUser = JSON.parse(localStorage.getItem('activeUser') || '{}');
+                const mkUser = JSON.parse(localStorage.getItem('MkuserData') || '{}');
+                
+                if (!activeUser.user_name && !mkUser.user_name) {
+                  // Not logged in - show alert and redirect to login
+                  if (window.confirm('You need to be logged in to book. Go to login page?')) {
+                    window.location.href = '/login';
+                  }
+                  return;
+                }
+                
                 fetch('http://localhost:8080/bookings', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify(hotel)
+                  body: JSON.stringify({
+                    ...hotel,
+                    userId: activeUser.id || mkUser.id,
+                    bookingDate: new Date().toISOString()
+                  })
                 })
                   .then(() => alert('Hotel booked! Added to your bookings.'))
                   .catch(() => alert('Booking failed. Try again.'));

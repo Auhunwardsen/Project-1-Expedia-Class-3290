@@ -1,0 +1,11 @@
+{
+  "id": "admin123",
+  "user_name": "admin",
+  "number": "+12223334444",
+  "password": "123456",
+  "email": "admin@example.com",
+  "dob": "",
+  "gender": "",
+  "marital_status": null,
+  "isAdmin": true
+}

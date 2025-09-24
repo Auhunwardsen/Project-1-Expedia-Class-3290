@@ -95,6 +95,7 @@
       "number": "+12223334444",
       "user_name": "hi",
       "password": "123",
+      "isAdmin": true,
       "email": "",
       "dob": "",
       "gender": "",

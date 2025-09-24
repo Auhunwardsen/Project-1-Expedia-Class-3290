@@ -13,6 +13,8 @@ import { Register } from "./Register";
 import StayData from "./Stay/StayData";
 import CheckoutPage from "./CheckoutPage";
 import FlightData from "./Flights/FlightData";
+import BookingHistory from "./BookingHistory";
+import AdminLogin from "./AdminLogin";
 
 export const AllRoutes = () => {
     return (
@@ -26,10 +28,11 @@ export const AllRoutes = () => {
             <Route path="/login" element={<Login/>}/>
             <Route path="/register" element={<Register/>}/>
             <Route path="/admin/hotels" element={<AllHotels />} />
+            <Route path="/admin-login" element={<AdminLogin />} />
             <Route path="/ThingsToDo" element={<Destination/>}/>
             <Route path="/stay" element={<StayData />} />
             <Route path="/flight" element={<FlightData />} />
-            
+            <Route path="/mybookings" element={<BookingHistory />} />
             <Route path="/checkout" element={<CheckoutPage/>} ></Route>
           </Routes>
         </>

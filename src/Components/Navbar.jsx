@@ -89,15 +89,73 @@ import {
             <Box fontWeight={'500'} fontSize={{base:'12px',sm:'16px'}} display={'flex'} >
                 Trip
             </Box>
+            
+            {/* Only show Admin link if user is logged in and is admin */}
+            {(() => {
+              const activeUser = JSON.parse(localStorage.getItem('activeUser') || '{}');
+              const mkUser = JSON.parse(localStorage.getItem('MkuserData') || '{}');
+              if (activeUser.isAdmin || mkUser.isAdmin) {
+                return (
+                  <RouterLink to="/admin">
+                    <Box fontWeight={'500'} fontSize={{base:'12px',sm:'16px'}} display={'flex'} color="blue.500">
+                      Admin Panel
+                    </Box>
+                  </RouterLink>
+                );
+              }
+              return null;
+            })()}
 
             <Box fontWeight={'500'} fontSize={{base:'16px',sm:'23px'}}  display={'flex'} >
                 <Icon mt={0.5} mr={1}   as={IoIosNotifications} />
             </Box>
-             <RouterLink to="/login">
-            <Box fontWeight={'500'}  fontSize={{base:'12px',sm:'16px'}}  mr={9} >
-                SignIn
-            </Box>
-            </RouterLink>
+            
+            {/* Show user name and bookings link when logged in, otherwise show SignIn */}
+            {(() => {
+              const activeUser = JSON.parse(localStorage.getItem('activeUser') || '{}');
+              const mkUser = JSON.parse(localStorage.getItem('MkuserData') || '{}');
+              const isLoggedIn = activeUser.user_name || mkUser.user_name;
+              
+              if (isLoggedIn) {
+                return (
+                  <>
+                    {/* My Bookings link */}
+                    <RouterLink to="/mybookings">
+                      <Box fontWeight={'500'} fontSize={{base:'12px',sm:'16px'}} mr={4} color="teal.500">
+                        My Bookings
+                      </Box>
+                    </RouterLink>
+                  
+                    {/* User name and logout */}
+                    <Box fontWeight={'500'} fontSize={{base:'12px',sm:'16px'}} display={'flex'} mr={9} color="blue.600">
+                      {activeUser.user_name || mkUser.user_name}
+                      <Link 
+                        ml={2}
+                        onClick={() => {
+                          localStorage.setItem("MkuserData", JSON.stringify({}));
+                          localStorage.setItem("MkisAuth", JSON.stringify(false));
+                          localStorage.setItem("activeUser", JSON.stringify({}));
+                          window.location.href = "/";
+                        }}
+                        color="red.400"
+                        fontSize="smaller"
+                      >
+                        (Logout)
+                      </Link>
+                    </Box>
+                  </>
+                );
+              } else {
+                return (
+                  <RouterLink to="/login">
+                    <Box fontWeight={'500'} fontSize={{base:'12px',sm:'16px'}} mr={9}>
+                      SignIn
+                    </Box>
+                  </RouterLink>
+                );
+              }
+            })()}
+            
             <Button onClick={toggleColorMode}>
                 {colorMode === 'light' ? <MoonIcon /> : <SunIcon />}
             </Button>

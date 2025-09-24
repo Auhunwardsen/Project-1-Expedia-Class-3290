@@ -2,14 +2,31 @@ import { Box, Image, Flex, Button } from "@chakra-ui/react";
 import axios from "axios";
 import { useToast } from "@chakra-ui/react";
 import { Link } from "react-router-dom";
+import { isLoggedIn, getCurrentUser } from '../../utils/auth';
 
 export default function FlightCard({ data }) {
   const { id, airline, from, to, departure, arrival, price, totalTime } = data;
   const toast = useToast();
 
   const handleClick = () => {
+    // Check if user is logged in
+    const activeUser = JSON.parse(localStorage.getItem('activeUser') || '{}');
+    const mkUser = JSON.parse(localStorage.getItem('MkuserData') || '{}');
+    
+    if (!activeUser.user_name && !mkUser.user_name) {
+      // Not logged in - show alert and redirect to login
+      if (window.confirm('You need to be logged in to book. Go to login page?')) {
+        window.location.href = '/login';
+      }
+      return;
+    }
+    
     // Book flight and add to cart
-    axios.post(`http://localhost:8080/bookings`, data)
+    axios.post(`http://localhost:8080/bookings`, {
+      ...data,
+      userId: activeUser.id || mkUser.id,
+      bookingDate: new Date().toISOString()
+    })
       .then(() => {
         toast({
           title: "Flight Booked",

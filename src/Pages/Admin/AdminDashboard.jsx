@@ -19,7 +19,11 @@ export const AdminDashboard = () => {
   // Admin route protection
   React.useEffect(() => {
     const activeUser = JSON.parse(localStorage.getItem('activeUser') || '{}');
-    if (!activeUser.isAdmin) {
+    const mkUser = JSON.parse(localStorage.getItem('MkuserData') || '{}');
+    
+    // Check if either user is an admin
+    if (!activeUser.isAdmin && !mkUser.isAdmin) {
+      alert('Admin access required');
       window.location = '/';
     }
   }, []);
@@ -87,7 +91,12 @@ export const AdminDashboard = () => {
           <h1><Link to={"/admin/adminstay"}>Add Stays</Link></h1>
           <h1><Link to={"/admin/products"}>All Flights</Link></h1>
           <h1><Link to={"/admin/hotels"}>All Hotels</Link></h1>
-          <h1><Link to={"/"}>Log out</Link></h1>
+          <h1><Link to={"/"}>View Site</Link></h1>
+          <h1><Link to={"/"} onClick={() => {
+            localStorage.setItem("MkuserData", JSON.stringify({}));
+            localStorage.setItem("MkisAuth", JSON.stringify(false));
+            localStorage.setItem("activeUser", JSON.stringify({}));
+          }}>Log out</Link></h1>
         </div>
         <div className="mainBox">
           <div className="mainBoxHead">
